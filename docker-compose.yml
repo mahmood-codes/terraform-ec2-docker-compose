@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  backend:
+    image: mahmoodkhan20/mern-backend:latest
+    ports:
+      - "5050:5050"
+    networks:
+      - mern_network
+    environment:
+      MONGO_URI: mongodb://mongo:27017/mydatabase
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: always
+
+  frontend:
+    image: mahmoodkhan20/mern-frontend:latest
+    ports:
+      - "80:80"
+    networks:
+      - mern_network
+    environment:
+      REACT_APP_API_URL: http://backend:5050
+    depends_on:
+      - backend
+    restart: always
+
+  mongo:
+    image: mongo:4.4
+    ports:
+      - "27017:27017"
+    networks:
+      - mern_network
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+networks:
+  mern_network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
